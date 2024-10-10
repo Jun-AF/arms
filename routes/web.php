@@ -156,24 +156,26 @@ Route::get('user/activity/detail/{id}', [UserController::class , 'getActivity'])
     ->name('activity.detail');
 Route::post('user/activity/read_all', [UserController::class , 'readAll'])
     ->name('activity.read');
+Route::delete('user/trucateActivity', [UserController::class , 'truncateActivity'])
+    ->name('user.truncateActivity');
 
 // Routing Setting page    
 Route::get('settings', [HomeController::class , 'setting'])
     ->name('setting');
-Route::delete('settings/trucateActivity', [HomeController::class , 'truncateActivity'])
-    ->name('setting.truncateActivity');
-Route::delete('settings/truncateAll', [HomeController::class , 'truncateAll'])
-    ->name('setting.truncate');
+// Route::delete('settings/trucateActivity', [HomeController::class , 'truncateActivity'])
+//     ->name('setting.truncateActivity');
+// Route::delete('settings/truncateAll', [HomeController::class , 'truncateAll'])
+//     ->name('setting.truncate');
 
 // Routing Export file
 Route::post('export/transaction', [HistoryController::class, 'export'])->name('export.transaction');
 Route::post('export/validation', [ValidationController::class, 'export'])->name('export.validation');
 
-// Routing Import File
-Route::post('import/office', [OfficeController::class, 'import'])->name('import.office');
-Route::post('import/user', [PersonController::class, 'import'])->name('import.user');
-Route::post('import/asset', [AssetController::class, 'import'])->name('import.asset');
-Route::post('import/transaction', [HistoryController::class, 'import'])->name('import.transaction');
+// // Routing Import File
+// Route::post('import/office', [OfficeController::class, 'import'])->name('import.office');
+// Route::post('import/user', [PersonController::class, 'import'])->name('import.user');
+// Route::post('import/asset', [AssetController::class, 'import'])->name('import.asset');
+// Route::post('import/transaction', [HistoryController::class, 'import'])->name('import.transaction');
 
 Route::get('download/office', [OfficeController::class, 'download'])->name('download.office');
 Route::get('download/user', [PersonController::class, 'download'])->name('download.user');

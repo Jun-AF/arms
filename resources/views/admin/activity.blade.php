@@ -10,7 +10,7 @@
 					@csrf
 					<button class="btn btn-outline-info btn-small mr-2"><i class="fas fa-check"></i>&nbsp;&nbsp;Read all</button>
 				</form>
-				<form action="{{ route('setting.truncateActivity') }}" method="post"> @csrf @method('DELETE') <button class="btn btn-outline-secondary btn-small mr-2" title="remove all activities">
+				<form action="{{ route('user.truncateActivity') }}" method="post"> @csrf @method('DELETE') <button class="btn btn-outline-secondary btn-small mr-2" title="remove all activities">
 						<i class="fas fa-trash"></i>&nbsp;&nbsp;Delete All
 					</button>
 				</form>

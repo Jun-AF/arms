@@ -79,14 +79,14 @@
 						</div>
 					</div>
 				</li>
-				@if (Auth::user()->role == 'Super admin')
+				{{-- @if (Auth::user()->role == 'Super admin')
 				<li class="nav-item">
 					<a class="nav-link" href="{{ route('setting') }}">
 						<i class="fas fa-fw fa-user-cog"></i>
 						<span>Settings</span>
 					</a>
 				</li>
-				@endif
+				@endif --}}
 				<!-- Divider -->
 				<hr class="sidebar-divider d-none d-md-block">
 				<!-- Sidebar Toggler (Sidebar) -->

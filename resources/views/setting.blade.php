@@ -36,7 +36,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="card w-75 mx-auto shadow mb-4">
+	{{-- <div class="card w-75 mx-auto shadow mb-4">
 		<div class="card-header py-3">
 			<i class="fas fa-table"></i>&nbsp;Tables Operation
 		</div>
@@ -215,7 +215,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> --}}
 	<div class="w-50 mx-auto">
 		<form action="{{ route('logout') }}" method="post"> @csrf <button class="btn btn-secondary h5 w-100">Sign Out</button>
 		</form>
