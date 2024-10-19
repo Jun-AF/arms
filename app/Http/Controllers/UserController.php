@@ -4,78 +4,56 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     public function __construct()
     {
-        $this->middleware("auth");
+        $this->middleware("auth"); // controller ini menggunakan middleware auth
     }
 
     public function index()
     {
-        $activities = $this->activity();
-        if (Auth::user()->role != "Super admin") {
-            $this->toastNotification("Fails", "Failed, you're not allowed to enter this page");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
+        $this->is_admin(); // check apakah role user adalah admin
 
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
+        $activities = $this->activity(); // mengambil record aktivitas user
         $users = User::all();
         $users_count = $users->count();
 
-        return view(
-            "admin.index",
-            compact("users", "users_count", "activities")
-        );
+        return view("admin.index", compact("users", "users_count", "activities"));
     }
 
     public function create()
     { 
-        $activities = $this->activity();
-        if (Auth::user()->role != "Super admin") {
-            $this->toastNotification("Fails", "Failed, you're not allowed to enter this page");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
+        $this->is_admin(); // check apakah role user adalah admin
 
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
+        $activities = $this->activity(); // mengambil record aktivitas user
        
         return view("admin.new", compact("activities"));
     }
 
     public function store(Request $request)
     {
-        if (Auth::user()->role != "Super admin") {
-            $this->toastNotification("Fails", "Failed, you're not allowed to enter this page");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
+        $this->is_admin(); // check apakah role user adalah admin
         
         $validate = $request->validateWithBag("error", [
-            "name" => ["required", "string"],
-            "email" => ["required", "string", "unique:users,email"],
-            "password" => ["required", "string", "min:6"],
-            "role" => ["required", "string"],
+            "name" => ["required", "string", "min:1", "max:25", "regex:/[A-Za-z ]/"],
+            "email" => ["required", "string", "max:25", "unique:users,email", "regex:/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/"],
+            "password" => ["required", "string", "min:6", "max:255", "regex:/([A-Za-z0-9_!*])/"],
+            "role" => ["required", "string", Rule::in(["Super admin", "admin"])],
         ]);
 
+        $user = null;
+        
         DB::beginTransaction();
-
         try {
-            User::create([
+            $user = User::create([
                 "name" => $request->name,
                 "email" => $request->email,
                 "password" => Hash::make($request->password),
@@ -84,166 +62,96 @@ class UserController extends Controller
                 "updated_at" => now()
             ]);
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (QueryException $err) {
             DB::rollBack();
 
-            $this->toastNotification("Fails", "Failed in storing a record");
+            $this->toastNotification("Fails", "Connection error, user record with name $request->name can't be stored");
             $condition = $this->getCondition();
             $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
+            return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
         }
-
-        $this->toastNotification("Success", "Success in storing a record");
-        $condition = $this->getCondition();
-        $notif = $this->getNotif();
-
-        $message =
-            "An admin has just stored with name " .
-            $request->name .
-            " and email " .
-            $request->email .
-            " as " .
-            $request->role;
+        $user->refresh();
+        $message = Auth::user()->name. " has created an user record with id " . $user->id;
         $this->storeActivity("Store", $message);
 
-        return redirect('admin')
-            ->with(["condition" => $condition, "notif" => $notif]);
+        $this->toastNotification("Success", "Record has stored");
+        $condition = $this->getCondition();
+        $notif = $this->getNotif();
+        return redirect('admin')->with(["condition" => $condition, "notif" => $notif]);
     }
 
     public function edit($id)
     {
-        if (Auth::user()->role != "Super admin") {
-            $this->toastNotification("Fails", "Failed, you're not allowed to enter this page");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
+        $this->is_admin(); // check apakah role user adalah admin
 
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
+        $activities = $this->activity(); // mengambil record aktivitas user
+
         $user = User::find($id); 
-        $activities = $this->activity();
-
+    
         return view("admin.edit", compact("user", "activities"));
     }
 
     public function update(Request $request)
     {
-        if (Auth::user()->role != "Super admin") {
-            $this->toastNotification("Fails", "Failed, you're not allowed to enter this page");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
+        $this->is_admin(); // check apakah role user adalah admin
 
         $validate = $request->validate([
             "id" => ["required", "integer"],
-            "name" => ["required", "string"],
-            "email" => ["required", "string"],
-            "role" => ["required", "string"],
+            "name" => ["required", "string", "min:1", "max:25", "regex:/[A-Za-z ]/"],
+            "email" => ["required", "string", "max:25", "unique:users,email,$request->id", "regex:/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/"],
+            "role" => ["required", "string", Rule::in(["Super admin", "admin"])],
         ]);
 
         DB::beginTransaction();
-
         try {
-            $user = User::where("id", $request->id)
-                ->lockForUpdate()
-                ->first(); // lock for update prevent the race condition
-
-            $email_check = $this->recordCheck(
-                $request->email,
-                User::class,
-                "email",
-                $user->email
-            );
-            if ($email_check == false) {
-                return redirect()->back();
-            }
+            $user = User::where("id", $request->id)->lockForUpdate()->first(); // lock for update prevent the race condition
 
             $user->name = $request->name;
             $user->email = $request->email;
-            if (strcmp($request->password, $user->password) == 0) {
-                $user->password = $user->password;
-            } else {
-                $user->password = Hash::make($request->password);
-            }
             $user->role = $request->role;
             $user->updated_at = now();
-            $user->save();
-
+            $user->save(); // save user update
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (QueryException $err) {
             DB::rollBack();
 
-            $this->toastNotification("Fails", "Failed in updating a record");
+            $this->toastNotification("Fails", "Connection error, user record with id $request->id can't be updated");
             $condition = $this->getCondition();
             $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
+            return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
         }
-
-        $this->toastNotification("Success", "Success in updating a record");
-        $condition = $this->getCondition();
-        $notif = $this->getNotif();
-
-        $message =
-        "An admin has just updated from database with email " .
-        $user->email;
+        $message = Auth::user()->name. " has updated an user record with id " . $user->id;
         $this->storeActivity("Update", $message);
 
-        return redirect()
-            ->route('admin')
-            ->with(["condition" => $condition, "notif" => $notif]);
+        $this->toastNotification("Success", "Record has updated");
+        $condition = $this->getCondition();
+        $notif = $this->getNotif();
+        return redirect('admin')->with(["condition" => $condition, "notif" => $notif]);
     }
 
     public function editPassword(Request $request)
     {
-        if (Auth::user()->role != "Super admin") {
-            $this->toastNotification("Fails", "Failed, you're not allowed to enter this page");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
+        $this->is_admin(); // check apakah role user adalah admin
 
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
+        $activities = $this->activity(); // mengambil record aktivitas user
+
         $user = User::find($request->id); 
-        $activities = $this->activity();
 
         return view("admin.admin_password", compact("user", "activities"));
     }
 
     public function updatePassword(Request $request)
     {
-        if (Auth::user()->role != "Super admin") {
-            $this->toastNotification("Fails", "Failed, you're not allowed to enter this page");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
+        $this->is_admin(); // check apakah role user adalah admin
 
         $validate = $request->validate([
             "id" => ["required", "integer"],
-            "password" => ["required", "string", "min:6"]
+            "password" => ["required", "string", "min:6", "max:255", "regex:/([A-Za-z0-9_!*])/"],
         ]);
 
         DB::beginTransaction();
-
         try {
-            $user = User::where("id", $request->id)
-                ->lockForUpdate()
-                ->first(); // lock for update prevent the race condition
+            $user = User::where("id", $request->id)->lockForUpdate()->first(); // lock for update prevent the race condition
 
             if (strcmp(Hash::make($request->password), $user->password) == 0) {
                 $user->password = $user->password;
@@ -251,98 +159,63 @@ class UserController extends Controller
                 $user->password = Hash::make($request->password);
                 $user->updated_at = now();
             }
-            $user->save();
-
+            $user->save(); // save user update
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (QueryException $err) {
             DB::rollBack();
 
-            $this->toastNotification("Fails", "Failed in updating a record");
+            $this->toastNotification("Fails", "Connection error, user's password with id $request->id can't be updated");
             $condition = $this->getCondition();
             $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
+            return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
         }
-
-        $this->toastNotification("Success", "Success in updating a record");
-        $condition = $this->getCondition();
-        $notif = $this->getNotif();
-
-        $message =
-        "An admin has just updated from database with email " .
-        $user->email;
+        $message = Auth::user()->name. " has updated an user's password with id " . $user->id;
         $this->storeActivity("Update", $message);
 
-        return redirect()
-            ->route('admin')
-            ->with(["condition" => $condition, "notif" => $notif]);
+        $this->toastNotification("Success", "User's password has updated");
+        $condition = $this->getCondition();
+        $notif = $this->getNotif();
+        return redirect('admin')->with(["condition" => $condition, "notif" => $notif]);
     }
 
     public function delete(Request $request)
     {
-        if (Auth::user()->role != "Super admin") {
-            $this->toastNotification("Fails", "Failed, you're not allowed to enter this page");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
+        $this->is_admin(); // check apakah role user adalah admin
 
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
         if ($request->id == 1) {
-            $this->toastNotification(
-                "Fails",
-                "Failed in deleting a record. The default admin cannot be deleted"
-            );
+            $this->toastNotification("Fails", "Default admin cannot be deleted");
             $condition = $this->getCondition();
             $notif = $this->getNotif();
 
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
+            return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
         }
 
         DB::beginTransaction();
-
         try {
             $user = User::find($request->id);
-
             DB::statement("SET CONSTRAINTS ALL DEFERRED");
-            DB::table("users")
-                ->where("id", $request->id)
-                ->delete();
+            DB::table("users")->where("id", $request->id)->delete();
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (QueryException $err) {
             DB::rollBack();
-
-            $this->toastNotification("Fails", "Failed in deleting a record");
+            $this->toastNotification("Fails", "Connection error, user record with id $request->id can't be updated");
             $condition = $this->getCondition();
             $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
+            return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
         }
-
-        $this->toastNotification("Success", "Success in deleting a record");
-        $condition = $this->getCondition();
-        $notif = $this->getNotif();
-
-        $message =
-            "An admin has just deleted from database with email " .
-            $user->email;
+        $message = Auth::user()->name. " has deleted an user record with id " . $user->id;
         $this->storeActivity("Delete", $message);
 
-        return redirect()
-            ->back()
-            ->with(["condition" => $condition, "notif" => $notif]);
+        $this->toastNotification("Success", "User has deleted");
+        $condition = $this->getCondition();
+        $notif = $this->getNotif();
+        return redirect('admin')->with(["condition" => $condition, "notif" => $notif]);
     }
 
     public function userProfile()
     {
-        $activities = $this->activity();
+        $activities = $this->activity(); // mengambil record aktivitas user
+
         $user = User::find(Auth::id());
 
         return view("admin.profile", compact("user", "activities"));
@@ -350,7 +223,8 @@ class UserController extends Controller
 
     public function userProfileEdit($id)
     {
-        $activities = $this->activity();
+        $activities = $this->activity(); // mengambil record aktivitas user
+
         $user = User::find($id);
 
         return view("admin.edit_profile", compact("user", "activities"));
@@ -359,62 +233,38 @@ class UserController extends Controller
     public function userProfileUpdate(Request $request)
     {
         $validate = $request->validate([
-            "name" => ["required", "string"],
-            "email" => ["required", "string"]
+            "name" => ["required", "string", "min:1", "max:25", "regex:/[A-Za-z ]/"],
+            "email" => ["required", "string", "max:25", "unique:users,email,$request->id", "regex:/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/"]
         ]);
 
         DB::beginTransaction();
-
         try {
-            $user = User::where("id", $request->id)
-                ->lockForUpdate()
-                ->first(); // lock for update prevent the race condition
-
-            $email_check = $this->recordCheck(
-                $request->email,
-                User::class,
-                "email",
-                $user->email
-            );
-            if ($email_check == false) {
-                return redirect()->back();
-            }
-
+            $user = User::where("id", $request->id)->lockForUpdate()->first(); // lock for update prevent the race condition
             $user->name = $request->name;
             $user->email = $request->email;
             $user->updated_at = now();
-            $user->save();
-
+            $user->save(); // save user update
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (QueryException $err) {
             DB::rollBack();
-
-            $this->toastNotification("Fails", "Failed in updating a record");
+            $this->toastNotification("Fails", "Connection error, your profile can't be updated");
             $condition = $this->getCondition();
             $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
+            return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
         }
-
-        $this->toastNotification("Success", "Success in updating a record");
-        $condition = $this->getCondition();
-        $notif = $this->getNotif();
-
-        $message =
-        "An admin has just updated from database with email " .
-        $user->email;
+        $message = "You have updated your profile";
         $this->storeActivity("Update", $message);
 
-        return redirect()
-            ->route('profile')
-            ->with(["condition" => $condition, "notif" => $notif]);
+        $this->toastNotification("Success", "Your profile has updated");
+        $condition = $this->getCondition();
+        $notif = $this->getNotif();
+        return redirect()->route('profile')->with(["condition" => $condition, "notif" => $notif]);
     }
 
     public function passwordEdit()
     {
-        $activities = $this->activity();
+        $activities = $this->activity(); // mengambil record aktivitas user
+
         $user = User::find(Auth::id());
 
         return view("admin.edit_password", compact("user", "activities"));
@@ -423,15 +273,13 @@ class UserController extends Controller
     public function passwordUpdate(Request $request)
     {
         $validate = $request->validate([
-            "password" => ["required", "string" , "min:6"]
+            "id" => ["required", "integer"],
+            "password" => ["required", "string", "min:6", "max:255", "regex:/([A-Za-z0-9_!*])/"],
         ]);
 
         DB::beginTransaction();
-
         try {
-            $user = User::where("id", $request->id)
-                ->lockForUpdate()
-                ->first(); // lock for update prevent the race condition
+            $user = User::where("id", $request->id)->lockForUpdate()->first(); // lock for update prevent the race condition
 
             if (strcmp(Hash::make($request->password), $user->password) == 0) {
                 $user->password = $user->password;
@@ -439,42 +287,33 @@ class UserController extends Controller
                 $user->password = Hash::make($request->password);
                 $user->updated_at = now();
             }
-            $user->save();
-
+            $user->save(); // save user update
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (QueryException $err) {
             DB::rollBack();
 
-            $this->toastNotification("Fails", "Failed in updating a record");
+            $this->toastNotification("Fails", "Connection error, your password can't be updated");
             $condition = $this->getCondition();
             $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
+            return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
         }
-
-        $this->toastNotification("Success", "Success in updating a record");
-        $condition = $this->getCondition();
-        $notif = $this->getNotif();
-
-        $message =
-        "An admin has just updated from database with email " .
-        $user->email;
+        $message = "Your have updated your password";
         $this->storeActivity("Update", $message);
 
-        return redirect()
-            ->route('profile')
-            ->with(["condition" => $condition, "notif" => $notif]);
+        $this->toastNotification("Success", "Your password has updated");
+        $condition = $this->getCondition();
+        $notif = $this->getNotif();
+        
+        return redirect()->route('profile')->with(["condition" => $condition, "notif" => $notif]);
     }
 
     public function userActivity()
     {
-        $activities = $this->activity();
+        $activities = $this->activity(); // mengambil record aktivitas user
+
         $data = [];
         if (Auth::user()->role == "Super admin") {
-            $data = DB::table("activities as act")
-                ->select(
+            $data = DB::table("activities as act")->select(
                     "act.id as act_id",
                     "act.actor_id",
                     "users.id",
@@ -484,12 +323,9 @@ class UserController extends Controller
                     "act.type",
                     "act.is_read",
                     "act.created_at"
-                )
-                ->leftJoin("users", "users.id", "act.actor_id")
-                ->get();
+                )->leftJoin("users", "users.id", "act.actor_id")->get();
         } else {
-            $data = DB::table("activities as act")
-                ->select(
+            $data = DB::table("activities as act")->select(
                     "act.id as act_id",
                     "act.actor_id",
                     "users.id",
@@ -499,10 +335,7 @@ class UserController extends Controller
                     "act.type",
                     "act.is_read",
                     "act.created_at"
-                )
-                ->leftJoin("users", "users.id", "act.actor_id")
-                ->where("users.id", Auth::user()->id)
-                ->get();
+                )->leftJoin("users", "users.id", "act.actor_id")->where("users.id", Auth::user()->id)->get();
         }
         
         return view("admin.activity", compact("data", "activities"));
@@ -511,16 +344,35 @@ class UserController extends Controller
     public function readAll()
     {
         if (Auth::user()->role == "Super admin") {
-            DB::table('activities')
-                ->update([
+            DB::beginTransaction();
+            try {
+                DB::table('activities')->update([
                     'is_read' => true
                 ]);
+                DB::commit();    
+            } catch (QueryException $err) {
+                DB::rollBack();
+    
+                $this->toastNotification("Fails", "Connection error");
+                $condition = $this->getCondition();
+                $notif = $this->getNotif();
+                return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
+            }
         } else {
-            DB::table('activities')
-                ->where('actor_id',Auth::user()->id)
-                ->update([
+            DB::beginTransaction();
+            try {
+                DB::table('activities')->where('actor_id',Auth::user()->id)->update([
                     'is_read' => true
                 ]);
+                DB::commit();
+            } catch (QueryException $err) {
+                DB::rollBack();
+    
+                $this->toastNotification("Fails", "Connection error");
+                $condition = $this->getCondition();
+                $notif = $this->getNotif();
+                return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
+            }
         }
             
         return redirect()->route('activity');
@@ -529,7 +381,6 @@ class UserController extends Controller
     public function truncateActivity()
     {
         DB::beginTransaction();
-
         try {
             if (Auth::user()->role == "Super admin") {
                 Activity::truncate();
@@ -537,38 +388,43 @@ class UserController extends Controller
                 Activity::where('actor_id',Auth::user()->id)->delete();
             }
             DB::commit();
-        } catch (\Throwable $th) {
+        } catch (QueryException $err) {
             DB::rollBack();
             
-            $this->toastNotification("Fails", "Failed in truncating records");
+            $this->toastNotification("Fails", "Connection error, activities can't be cleaned");
             $condition = $this->getCondition();
             $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
+            return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
         }
+        $message = "Activities have cleaned";
+        $this->storeActivity("Delete", $message);
 
-        $this->toastNotification(
-            "Success",
-            "Success in deleting all activities"
-        );
+        $this->toastNotification("Success", "Activities have cleaned");
         $condition = $this->getCondition();
         $notif = $this->getNotif();
 
-        return redirect()
-            ->back()
-            ->with(["condition" => $condition, "notif" => $notif]);
+        return redirect()->back()->with(["condition" => $condition, "notif" => $notif]);
     }
 
     public function getActivity($id)
     {
-        $read = Activity::where('id',$id)->update([
-            'is_read' => true,
-        ]);
+        $condition = "";
+        $notif = "";
 
-        $data = DB::table("activities as act")
-            ->select(
+        DB::beginTransaction();
+        try {
+            $read = Activity::where('id',$id)->update([
+                'is_read' => true,
+            ]);
+            DB::commit();
+        } catch(QueryException $err) {
+            DB::rollBack();
+
+            $this->toastNotification("Fails", "Connection error");
+            $condition = $this->getCondition();
+            $notif = $this->getNotif();
+        }
+        $data = DB::table("activities as act")->select(
                 "act.id as act_id",
                 "act.actor_id",
                 "users.id",
@@ -577,59 +433,10 @@ class UserController extends Controller
                 "act.message",
                 "act.type",
                 "act.created_at"
-            )
-            ->leftJoin("users", "users.id", "act.actor_id")
-            ->where("act.id", $id)
-            ->get();
-        $activities = $this->activity();
+            )->leftJoin("users", "users.id", "act.actor_id")->where("act.id", $id)->get();
 
-        return view("admin.activity_detail", compact("data", "activities"));
-    }
+        $activities = $this->activity(); // mengambil record aktivitas user
 
-    protected function updateUser($request, $update_sc = false)
-    {
-        DB::beginTransaction();
-
-        try {
-            $user = User::where("id", $request->id)
-                ->lockForUpdate()
-                ->first(); // lock for update prevent the race condition
-
-            $email_check = $this->recordCheck(
-                $request->email,
-                User::class,
-                "email",
-                $user->email
-            );
-            if ($email_check == false) {
-                return redirect()->back();
-            }
-
-            $user->name = $request->name;
-            $user->email = $request->email;
-            if (strcmp($request->password, $user->password) == 0) {
-                $user->password = $user->password;
-            } else {
-                $user->password = Hash::make($request->password);
-            }
-            $user->role = $request->role;
-            $user->updated_at = now();
-            $user->save();
-            DB::commit();
-
-            $update_sc = true;
-        } catch (\Throwable $th) {
-            DB::rollBack();
-
-            $this->toastNotification("Fails", "Failed in updating a record");
-            $condition = $this->getCondition();
-            $notif = $this->getNotif();
-
-            return redirect()
-                ->back()
-                ->with(["condition" => $condition, "notif" => $notif]);
-        }
-
-        return $update_sc;
+        return view("admin.activity_detail", compact("data", "activities"))->with(["condition" => $condition, "notif" => $notif]);
     }
 }

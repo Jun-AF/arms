@@ -19,7 +19,7 @@ return new class extends Migration {
                 ->cascadeOnUpdate();
             $table->string("token"); // untuk membedakan kegiatan transaksi
             $table->string("message");
-            $table->enum("type", ["Create", "Update", "Delete"]);
+            $table->enum("type", ["Store", "Update", "Delete"]);
             $table->boolean("is_read")->default(false);
             $table->timestamps();
         });
