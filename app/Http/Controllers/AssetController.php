@@ -27,20 +27,15 @@ class AssetController extends Controller
      */
     public function index()
     {
-        $activities = $this->activity();
-        $assets = DB::table("assets")
-            ->select(
-                "assets.*"
-            )
+        $activities = $this->activity(); // mengambil record aktivitas user
+        
+        $assets = DB::table("assets")->select("assets.*")
             ->groupBy("assets.id",'assets.uniqueid',"assets.asset_name","assets.type","assets.sn","assets.mac_address","assets.office_name","assets.purchase_date","assets.asset_in","assets.office_id")
             ->orderBy("assets.id", "ASC")
             ->get();
         $assets_count = sizeof($assets);
 
-        return view(
-            "assets.index",
-            compact("assets", "assets_count", "activities")
-        );
+        return view("assets.index", compact("assets", "assets_count", "activities"));
     }
 
     /**
@@ -48,25 +43,19 @@ class AssetController extends Controller
      */
     public function search(Request $request)
     {
-        $activities = $this->activity();
-        $assets = DB::table("assets")
-            ->select(
-                "assets.*"
-            )
+        $activities = $this->activity(); // mengambil record aktivitas user
+        $assets = DB::table("assets")->select("assets.*")
             ->where("sn", $request->sn)
             ->get();
         $assets_count = Asset::all()->count();
 
-        return view(
-            "assets.index",
-            compact("assets", "assets_count", "activities")
-        );
+        return view("assets.index",compact("assets", "assets_count", "activities"));
     }
 
     public function create()
     {
+        $activities = $this->activity(); // mengambil record aktivitas user
         $type = ['Laptop','PC','Monitor','IP Camera','Surveilance','Attendance','Others'];
-        $activities = $this->activity();
         $offices = Office::all();
 
         return view("assets.new", compact("offices", "activities", "type"));

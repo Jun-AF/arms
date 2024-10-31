@@ -4,13 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create("histories", function (Blueprint $table) {
+        Schema::create('warehouse_asset_histories', function (Blueprint $table) {
             $table->id();
             $table->string("asset_name",100);
             $table->string("sn",25);
@@ -31,8 +32,6 @@ return new class extends Migration {
                 ->cascadeOnUpdate();
             $table->timestamps();
         });
-
-        Schema::rename('histories', 'it_assets_histories');
     }
 
     /**
@@ -40,6 +39,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists("histories");
+        Schema::dropIfExists('warehouse_asset_histories');
     }
 };
