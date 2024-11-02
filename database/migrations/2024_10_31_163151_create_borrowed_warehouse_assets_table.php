@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('borrowed_warehouse_assets', function (Blueprint $table) {
+        Schema::create("borrowed_warehouse_assets", function (Blueprint $table) {
             $table->id();
-            $table->foreignId('assets_id')
-                ->constrained('warehouse_assets', indexName: "warehouse_asset_id")
-                ->cascadeOnDelete();
+            $table->foreignId("assets_id")
+                ->unsigned()
+                ->constrained("warehouse_assets", indexName: "warehouse_asset_id")
+                ->noActionOnDelete();
             $table->string("borrower", 25);
             $table->string("office_name", 25);
             $table->timestamps();
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('borrowed_warehouse_assets');
+        Schema::dropIfExists("borrowed_warehouse_assets");
     }
 };

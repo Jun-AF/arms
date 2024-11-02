@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->string("operating_system",15)->nullable();
             $table->mediumInteger("storage_capacity")->nullable();
             $table->foreignId("type_id")
+                ->unsigned()
                 ->constrained(table: "asset_types", indexName: "asset_types_id")
                 ->noActionOnDelete();
             $table->date("guarantee_date")->nullable();
@@ -29,7 +30,7 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::rename('assets', 'it_assets');
+        Schema::rename("assets", "it_assets");
     }
 
     /**

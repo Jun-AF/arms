@@ -14,11 +14,15 @@ return new class extends Migration {
             $table->id();
             $table->foreignId("asset_id")
                 ->unique()
-                ->constrained(table: "assets", indexName: "validations_asset_id");
+                ->constrained(table: "it_assets", indexName: "validations_asset_id");
             $table->foreignId("validator_id")
-                ->constrained(table: "users", indexName: "validations_user_id");
+                ->unsigned()
+                ->constrained(table: "users", indexName: "validations_user_id")
+                ->noActionOnDelete();
             $table->foreignId("office_id")
-                ->constrained(table: "offices", indexName: "validations_office_id");
+                ->unsigned()
+                ->constrained(table: "offices", indexName: "validations_office_id")
+                ->cascadeOnDelete();
             $table->enum("condition", ["Good", "Obsolete", "Broken"]);
             $table->text("comment");
             $table->char("month_period",2);
@@ -26,7 +30,7 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::rename('histories', 'it_assets_validations');
+        Schema::rename("validations", "it_assets_validations");
     }
 
     /**

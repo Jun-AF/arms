@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('warehouse_asset_validations', function (Blueprint $table) {
+        Schema::create("warehouse_asset_validations", function (Blueprint $table) {
             $table->id();
             $table->foreignId("asset_id")
                 ->unique()
                 ->constrained(table: "warehouse_assets", indexName: "validations_asset_id");
             $table->foreignId("validator_id")
+                ->unsigned()
                 ->constrained(table: "users", indexName: "validations_user_id")
                 ->noActionOnDelete();
             $table->foreignId("office_id")
+                ->unsigned()
                 ->constrained(table: "offices", indexName: "validations_office_id")
-                ->noActionOnDelete();
+                ->cascadeOnDelete();
             $table->enum("condition", ["Good", "Obsolete", "Broken"]);
             $table->text("comment");
             $table->char("month_period",2);
@@ -35,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('warehouse_asset_validations');
+        Schema::dropIfExists("warehouse_asset_validations");
     }
 };

@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('warehouse_assets', function (Blueprint $table) {
+        Schema::create("warehouse_assets", function (Blueprint $table) {
             $table->id();
             $table->string("uniqueid",7)->unique();
             $table->string("asset_name",100);
             $table->string("sn",12)->unique();
             $table->foreignId("type_id")
+                ->unsigned()
                 ->constrained(table: "asset_types", indexName: "asset_types_id")
                 ->noActionOnDelete();
             $table->date("guarantee_date")->nullable();
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('warehouse_assets');
+        Schema::dropIfExists("warehouse_assets");
     }
 };

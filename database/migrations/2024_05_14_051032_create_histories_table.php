@@ -18,18 +18,21 @@ return new class extends Migration {
             $table->date("transaction_date");
             $table->string("comment",100);
             $table->foreignId("asset_id")
-                ->constrained(table: "assets", indexName: "histories_asset_id")
+                ->unsigned()
+                ->constrained(table: "it_assets", indexName: "histories_asset_id")
                 ->cascadeOnDelete();
             $table->foreignId("person_id")
+                ->unsigned()
                 ->constrained(table: "persons", indexName: "histories_person_id")
                 ->noActionOnDelete();
             $table->foreignId("office_id")
+                ->unsigned()
                 ->constrained(table: "offices", indexName: "histories_office_id")
                 ->noActionOnDelete();
             $table->timestamps();
         });
 
-        Schema::rename('histories', 'it_assets_histories');
+        Schema::rename("histories", "it_assets_histories");
     }
 
     /**

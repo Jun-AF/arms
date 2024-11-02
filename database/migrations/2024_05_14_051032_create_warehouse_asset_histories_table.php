@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('warehouse_asset_histories', function (Blueprint $table) {
+        Schema::create("warehouse_asset_histories", function (Blueprint $table) {
             $table->id();
             $table->string("asset_name",100);
             $table->string("sn",25);
@@ -19,12 +19,15 @@ return new class extends Migration
             $table->date("transaction_date");
             $table->string("comment",100);
             $table->foreignId("asset_id")
-                ->constrained(table: "assets", indexName: "histories_asset_id")
+                ->unsigned()
+                ->constrained(table: "warehouse_assets", indexName: "histories_asset_id")
                 ->cascadeOnDelete();
             $table->foreignId("person_id")
+                ->unsigned()
                 ->constrained(table: "persons", indexName: "histories_person_id")
                 ->noActionOnDelete();
             $table->foreignId("office_id")
+                ->unsigned()
                 ->constrained(table: "offices", indexName: "histories_office_id")
                 ->noActionOnDelete();
             $table->timestamps();
@@ -36,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('warehouse_asset_histories');
+        Schema::dropIfExists("warehouse_asset_histories");
     }
 };
