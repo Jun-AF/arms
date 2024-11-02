@@ -10,14 +10,16 @@ class Activity extends Model
     use HasFactory;
 
     protected $fillable = [
-        "actor_id", // foreign table
-        "token",
+        "validator_id",
         "message",
-        "type"
+        "type",
+        "is_read",
+        "created_at",
+        "updated_at"
     ];
 
-    public function user()
+    public function validator()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withDefault();
     }
 }

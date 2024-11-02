@@ -9,21 +9,20 @@ class History extends Model
 {
     use HasFactory;
 
+    protected $table = "it_assets_histories";
+
     protected $fillable = [
-        "uniqueid",
         "asset_name",
         "sn",
         "transaction_type",
-        "name",
-        "office_name",        
         "transaction_date",
         "comment",
-        "asset_id", // foreign table
-        "person_id", // foreign table
-        "office_id" // foreign table
+        "asset_id",
+        "person_id",
+        "office_id",
     ];
 
-    public function asset()
+    public function it_asset()
     {
         return $this->belongsTo(Asset::class)->withDefault();
     }

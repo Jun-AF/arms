@@ -13,17 +13,17 @@ class Person extends Model
 
     protected $fillable = [
         "name",
-        "office_name",
         "job_title",
-        "office_id" // foreign table
+        "created_at",
+        "updated_at"
     ];
 
-    public function office()
+    public function warehouse_history()
     {
-        return $this->belongsTo(Office::class)->withDefault();
+        return $this->hasMany(WarehouseAssetHistory::class);
     }
 
-    public function history()
+    public function it_history()
     {
         return $this->hasMany(History::class);
     }

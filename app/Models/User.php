@@ -16,7 +16,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = ["name", "email", "password", "role"];
+    protected $fillable = ["name", "email", "password","created_at","updated_at"];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -38,8 +38,13 @@ class User extends Authenticatable
         ];
     }
 
-    public function validation()
+    public function it_validation()
     {
         return $this->hasMany(Validation::class);
+    }
+
+    public function warehouse_validation()
+    {
+        return $this->hasMany(WarehouseAssetValidation::class);
     }
 }

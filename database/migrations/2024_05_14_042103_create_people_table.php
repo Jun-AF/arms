@@ -12,14 +12,8 @@ return new class extends Migration {
     {
         Schema::create("people", function (Blueprint $table) {
             $table->id();
-            $table->string("name");
-            $table->string("office_name");
-            $table->string("job_title")->nullable();
-            $table
-                ->foreignId("office_id")
-                ->constrained(table: "offices", indexName: "persons_office_id")
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+            $table->string("name",25);
+            $table->string("job_title",15)->nullable();
             $table->timestamps();
         });
 

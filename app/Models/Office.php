@@ -11,21 +11,28 @@ class Office extends Model
 
     protected $fillable = [
         "office_name", 
-        "location"
+        "location",
+        "created_at",
+        "updated_at"
     ];
 
-    public function assets()
+    public function warehouse_validation()
     {
-        return $this->hasMany(Asset::class);
+        return $this->hasMany(WarehouseAssetValidation::class);
     }
 
-    public function persons()
+    public function warehouse_asset()
     {
-        return $this->hasMany(Person::class);
+        return $this->hasMany(WarehouseAsset::class);
     }
 
-    public function validations()
+    public function it_validation()
     {
         return $this->hasMany(Validation::class);
+    }
+
+    public function it_asset()
+    {
+        return $this->hasMany(Asset::class);
     }
 }

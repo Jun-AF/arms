@@ -9,21 +9,26 @@ class Asset extends Model
 {
     use HasFactory;
 
+    protected $table = "it_assets";
+
     protected $fillable = [
         "uniqueid",
         "asset_name",
-        "type",
         "sn",
-        "os",
-        "hostname",
         "mac_address",
-        "office_name",
+        "ip_address",
+        "hostname",
+        "operating_system",
+        "storage_capacity",
+        "type_id",
+        "guarantee_date",
         "purchase_date",
         "asset_in",
-        "office_id" // foreign table
+        "created_at",
+        "updated_at",
     ];
 
-    public function validation()
+    public function it_validation()
     {
         return $this->hasOne(Validation::class);
     }

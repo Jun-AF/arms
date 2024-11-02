@@ -12,13 +12,19 @@ return new class extends Migration {
     {
         Schema::create("activities", function (Blueprint $table) {
             $table->id();
+            $table->foreignId("asset_id")
+                ->unique()
+                ->constrained(table: "assets", indexName: "validations_asset_id");
             $table->foreignId("validator_id")
-                ->constrained(table: "users", indexName: "activities_validator_id")
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
-            $table->string("message",100);
-            $table->enum("type", ["Store", "Update", "Delete"]);
-            $table->boolean("is_read")->default(false);
+                ->constrained(table: "users", indexName: "validations_user_id")
+                ->noActionOnDelete();
+            $table->foreignId("office_id")
+                ->constrained(table: "offices", indexName: "validations_office_id")
+                ->noActionOnDelete();
+            $table->enum("condition", ["Good", "Obsolete", "Broken"]);
+            $table->text("comment");
+            $table->char("month_period",2);
+            $table->boolean("is_validated")->default(false);
             $table->timestamps();
         });
     }

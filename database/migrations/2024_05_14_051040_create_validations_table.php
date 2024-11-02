@@ -21,7 +21,7 @@ return new class extends Migration {
                 ->constrained(table: "offices", indexName: "validations_office_id");
             $table->enum("condition", ["Good", "Obsolete", "Broken"]);
             $table->text("comment");
-            $table->string("month_period",2);
+            $table->char("month_period",2);
             $table->boolean("is_validated")->default(false);
             $table->timestamps();
         });

@@ -18,8 +18,7 @@ return new class extends Migration
             $table->string("sn",12)->unique();
             $table->foreignId("type_id")
                 ->constrained(table: "asset_types", indexName: "asset_types_id")
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete();
             $table->date("guarantee_date")->nullable();
             $table->date("purchase_date")->nullable();
             $table->date("asset_in")->nullable();

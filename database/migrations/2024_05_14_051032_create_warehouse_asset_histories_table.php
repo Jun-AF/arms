@@ -20,16 +20,13 @@ return new class extends Migration
             $table->string("comment",100);
             $table->foreignId("asset_id")
                 ->constrained(table: "assets", indexName: "histories_asset_id")
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
             $table->foreignId("person_id")
                 ->constrained(table: "persons", indexName: "histories_person_id")
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete();
             $table->foreignId("office_id")
                 ->constrained(table: "offices", indexName: "histories_office_id")
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete();
             $table->timestamps();
         });
     }

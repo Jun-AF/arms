@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('assets_id')
                 ->constrained('warehouse_assets', indexName: "warehouse_asset_id")
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
             $table->string("borrower", 25);
             $table->string("office_name", 25);
             $table->timestamps();

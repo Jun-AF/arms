@@ -14,9 +14,8 @@ return new class extends Migration
         Schema::create('borrowed_it_assets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('assets_id')
-                ->constrained('warehouse_assets', indexName: "warehouse_asset_id")
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->constrained('it_assets', indexName: "it_asset_id")
+                ->cascadeOnDelete();
             $table->string("borrower", 25);
             $table->string("office_name", 25);
             $table->timestamps();

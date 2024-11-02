@@ -15,11 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId("asset_id")
                 ->unique()
-                ->constrained(table: "assets", indexName: "validations_asset_id");
+                ->constrained(table: "warehouse_assets", indexName: "validations_asset_id");
             $table->foreignId("validator_id")
-                ->constrained(table: "users", indexName: "validations_user_id");
+                ->constrained(table: "users", indexName: "validations_user_id")
+                ->noActionOnDelete();
             $table->foreignId("office_id")
-                ->constrained(table: "offices", indexName: "validations_office_id");
+                ->constrained(table: "offices", indexName: "validations_office_id")
+                ->noActionOnDelete();
             $table->enum("condition", ["Good", "Obsolete", "Broken"]);
             $table->text("comment");
             $table->char("month_period",2);
