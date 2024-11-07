@@ -62,14 +62,6 @@ class OfficeController extends Controller
             ]);
             $office->refresh();
 
-            Person::create([
-                "name" => "STANDBY",
-                "office_name" => $request->office_name,
-                "office_id" => $office->id,
-                "created_at" => now(),
-                "updated_at" => now()
-            ]);
-
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();

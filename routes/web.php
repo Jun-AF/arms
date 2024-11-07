@@ -95,7 +95,9 @@ Route::get('transaction/{unique}/edit_transaction/{id}', [HistoryController::cla
 Route::patch('transaction/{unique}/edit_transaction', [HistoryController::class , 'detailUpdate'])->name('history.detail.update');
 Route::delete('transaction/{unique}/{id}', [HistoryController::class , 'detailDelete'])->name('history.detail.delete');
 
-// Routing Person page
+/**
+ * Routing person page
+ */
 Route::get('person', [PersonController::class , 'index'])->name('person');
 Route::get('person/new_person', [PersonController::class , 'create'])->name('person.create');
 Route::post('person/new_person', [PersonController::class , 'store'])->name('person.store');
@@ -103,3 +105,4 @@ Route::get('person/edit_person/{id}', [PersonController::class , 'edit'])->name(
 Route::patch('person/edit_person', [PersonController::class , 'update'])->name('person.update');
 Route::delete('person/delete', [PersonController::class , 'delete'])->name('person.delete');
 Route::delete('person/truncate', [PersonController::class , 'truncate'])->name('person.truncate');
+
